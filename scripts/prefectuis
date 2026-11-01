@@ -17,9 +17,17 @@ esac
 bin="$dir/bin/$os-$arch/prefectuis"
 [ "$os" = windows ] && bin="$bin.exe"
 
-if [ -x "$bin" ]; then
-  exec "$bin" "$@"
+if [ ! -x "$bin" ]; then
+  echo "PrefectUIS engine binary not found or not executable for $os-$arch at $bin" >&2
+  exit 1
 fi
 
-echo "PrefectUIS engine binary not found or not executable for $os-$arch at $bin" >&2
-exit 1
+case " $* " in
+  *" --help "*|*" -h "*|*" help "*)
+    "$bin" "$@" 2>&1 | sed 's/impeccable/prefectuis/g'
+    exit 0
+    ;;
+  *)
+    exec "$bin" "$@"
+    ;;
+esac
