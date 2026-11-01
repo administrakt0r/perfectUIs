@@ -1,62 +1,56 @@
-# PrefectUIS Skill Improvement Guide & AI Prompt
+# Improving PrefectUIS
 
-This document contains a comprehensive, ready-to-copy-paste prompt to provide to an AI assistant (such as Antigravity, Claude, or ChatGPT) whenever you want to research upstream design updates, identify weaknesses in PrefectUIS, and upgrade the skill.
+Open this repository and paste the prompt below as the whole task. Do not add a second agenda in chat. The prompt is written so the next run closes gaps and leaves the current rules in place.
 
----
-
-## 📋 Copy-Paste Prompt for AI Assistants
-
-Copy and paste the prompt below into your AI coding assistant:
+## Prompt
 
 ```markdown
-You are an expert AI skill author and design systems engineer. 
+Upgrade the PrefectUIS skill in this repository. It is an incremental UI-quality workflow: a review gate, one or two issues per run, six stages, six playbooks (layout, typeset, colorize, harden, adapt, polish), a craft floor, and a dependency-free Python detector.
 
-I need you to audit, enhance, and upgrade the **PrefectUIS** repository (`prefectuis`), ensuring it incorporates the latest cutting-edge UI engineering standards, best practices, and automated detection techniques.
+Read these before editing, and treat them as the current contract: SKILL.md, reference/craft-floor.md, reference/playbooks.md, reference/backlog-template.md, README.md, AGENTS.md, scripts/prefectuis, scripts/detect.py, scripts/test_detect.py.
 
-### Core Objectives:
-1. **Research Upstream & Modern UI Innovations**:
-   - Inspect the latest documentation, rules, and updates from modern design systems and reference systems such as https://impeccable.style/ (or local installations if present).
-   - Check for new anti-patterns, updated accessibility rules (WCAG 2.2 / AAA additions), modern CSS capabilities (container queries, CSS `:has()`, view transitions, subgrid, modern color spaces like OKLCH), and responsive/touch guidelines.
+## Goal
 
-2. **Audit PrefectUIS for Weaknesses & Gaps**:
-   - Thoroughly examine all files in this repository:
-     - `SKILL.md` (Workflow orchestration, 6-stage lifecycle, review gates)
-     - `reference/craft-floor.md` (Quality floor, contrast, typography, prohibited anti-patterns)
-     - `reference/playbooks.md` (Layout, typeset, colorize, harden, adapt, polish playbooks)
-     - `reference/backlog-template.md` (Durable `.prefectuis/backlog.md` format)
-     - `scripts/` (Detector scripts and CLI wrappers)
-   - Identify any missing edge cases, weak rules, vague instructions, or gaps across frontend frameworks (e.g., React, Next.js, Vue, Svelte, Astro, Tailwind CSS, Vanilla CSS).
+Close real gaps between this skill and current, widely shipped UI practice. Prefer a smaller, stricter skill. Do not rewrite prose that is already correct, and do not add a technique because it is new.
 
-3. **Enhance and Upgrade**:
-   - Improve the specialized playbooks with modern, high-impact techniques.
-   - Tighten the Craft Floor with actionable, verifiable rules.
-   - Refine the 6-stage execution lifecycle to ensure maximum reliability and seamless 1–2 issue incremental resolution.
-   - Optimize `SKILL.md` for Skill Discovery Optimization (SDO) in line with standard agent skill specifications (clear "Use when..." description without leaking workflow summaries into frontmatter).
+## Research
 
-4. **Strict Isolation & Rebranding Invariant**:
-   - All tools, artifacts, directories, and documentation MUST remain branded strictly as **`prefectuis`** (e.g., `.prefectuis/backlog.md`, `scripts/prefectuis`).
-   - Do NOT include any upstream brand names (such as "impeccable") anywhere in the repository, files, comments, or documentation.
+Check WCAG 2.2 level AA. Treat AAA as optional unless a product explicitly asks for it. For any CSS or platform behavior you want the skill to require, confirm it in current MDN or the relevant platform docs. You may read design references already installed on this machine. Rewrite every idea in PrefectUIS language.
 
-5. **Verification**:
-   - Test any modified scripts, detectors, or templates.
-   - Ensure markdown links and references remain intact and valid.
-   - Summarize all upgrades made and highlight what was improved.
+Do not copy another tool's names, commands, directory names, or sentences into any file here. Do not add product or tool brand names other than PrefectUIS.
+
+## Keep
+
+- The prefectuis name on the skill, the launcher (`scripts/prefectuis`), and the journal (`.prefectuis/backlog.md`).
+- The six stages, including the review gate that waits for "proceed" before editing.
+- A limit of one or two issues per run. Two findings with the same cause count as one fix.
+- The detector on python3, with no package install and no downloaded binary.
+- JSON findings as objects with `rule`, `severity`, `playbook`, `file`, `line`, and `message`.
+- A `SKILL.md` description that starts with "Use when" and does not list the stages or playbooks.
+- WCAG AA as the default floor. Do not raise body text to 7:1.
+- Motion, view transitions, and scroll-driven animation as optional. They need a `prefers-reduced-motion` path and must not be required to operate the page.
+
+## Edit
+
+- If a rule already exists, tighten its wording or its false-positive boundary. Do not add a second paragraph that repeats it.
+- Put a technique in a playbook only when it fixes a defect that playbook already owns.
+- When a user-facing rule changes, update the craft floor, the playbook, `SKILL.md` if the workflow changes, the README summary, and the backlog template together.
+- Every new detector rule needs a fixture that reports it and a near-miss fixture that stays clean. Extend `scripts/test_detect.py`. Do not weaken a test to go green.
+- A detector hit is a candidate. Document limits the scanner still cannot see.
+- Do not commit, push, or publish.
+
+## Verify
+
+- `python3 scripts/test_detect.py` from the repository root.
+- `scripts/prefectuis detect --rules` lists every rule the tests cover.
+- Relative links in `SKILL.md` and `reference/` resolve to files in this repo. Example links inside the backlog template point at a target project's `PRODUCT.md` and `DESIGN.md`; leave those.
+- Search the repo for stray design-tool brand names and remove any you added.
+
+## Report
+
+Lead with what changed and why. Mark each check passed, failed, or unavailable. Name any gap you left open and the reason.
 ```
 
----
+## What a good run leaves alone
 
-## 🔍 Specific Areas to Watch & Enhance
-
-When running upgrades with the prompt above, consider focusing on these high-leverage domains:
-
-1. **Framework-Specific Patterns**:
-   - Tailwind CSS: Enforce token-based utilities over arbitrary square-bracket values (e.g. `p-[13px]`).
-   - CSS Modules & Emotion/Styled-Components: Ensure clean scoped class naming and token injection.
-2. **Modern Web Standards**:
-   - Adoption of CSS `text-wrap: balance` and `text-wrap: pretty`.
-   - Utilization of modern color spaces (`oklch()`) for perceptually uniform contrast.
-   - Smooth CSS scroll-driven animations and View Transition API integration.
-3. **Automated Detector Coverage**:
-   - Adding custom regex/AST rules for detecting hardcoded colors, broken contrast combinations, unlabelled buttons, and unhandled loading/error states.
-4. **Adaptive & Native Surface Rules**:
-   - Extending `adapt` playbook rules for dual-screen foldables, tablets, and native web wrappers (Capacitor / Tauri / Electron).
+The craft floor already covers AA contrast, OKLCH for new ramps, `text-wrap: balance` and `pretty`, 24px minimum targets and 44px primary touch targets, container queries, `:has()`, subgrid, foldables, and Capacitor, Tauri, and Electron. The detector already flags the rules printed by `detect --rules`. Extend those. Do not re-add them.

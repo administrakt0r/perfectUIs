@@ -1,8 +1,8 @@
 # PrefectUIS
 
-PrefectUIS is an automated UI review and polish skill for AI coding assistants. It scans your frontend, picks the one or two most critical design or accessibility issues, fixes them with targeted techniques, verifies that the build still passes, and logs what it did in `.prefectuis/backlog.md`.
+PrefectUIS is a UI review skill for coding agents. It proposes the one or two most important design or accessibility issues, waits for you to accept the plan, fixes those issues, checks the result, and records the rest in `.prefectuis/backlog.md`.
 
-Instead of making dozens of edits across your app at once, it works in small, verifiable steps.
+It works in small, verifiable steps.
 
 ---
 
@@ -17,11 +17,12 @@ Please install the PrefectUIS skill into your personal skills directory from Git
 git clone https://github.com/administrakt0r/prefectuis.git <skills-dir>/prefectuis
 
 For reference:
+- Cursor: ~/.cursor/skills/prefectuis
 - Antigravity: ~/.gemini/config/skills/prefectuis
 - Claude Code: ~/.claude/skills/prefectuis
 - Codex / Universal: ~/.agents/skills/prefectuis
 
-After cloning, ensure scripts/prefectuis has executable permissions (chmod +x scripts/prefectuis).
+After cloning, ensure scripts/prefectuis is executable (chmod +x scripts/prefectuis). The detector needs python3.
 Confirm when the skill is installed and ready to invoke as /prefectuis.
 ```
 
@@ -30,6 +31,12 @@ Confirm when the skill is installed and ready to invoke as /prefectuis.
 ## Command-Line Installation
 
 If you prefer to install it yourself from the terminal, pick the command matching your tool:
+
+### Cursor
+```bash
+git clone https://github.com/administrakt0r/prefectuis.git ~/.cursor/skills/prefectuis
+chmod +x ~/.cursor/skills/prefectuis/scripts/prefectuis
+```
 
 ### Google Antigravity
 ```bash
@@ -51,20 +58,19 @@ chmod +x ~/.agents/skills/prefectuis/scripts/prefectuis
 
 ---
 
-## Running the Detector via CLI / NPX
+## Running the detector
 
-You can run the built-in anti-pattern detector on any directory or file without invoking an agent:
+The launcher is `scripts/prefectuis` inside the skill directory. It needs `python3`. Point it at files or directories (HTML, CSS, and component source). It does not scan a live URL.
 
 ```bash
-# Direct execution using the bundled launcher
-~/.gemini/config/skills/prefectuis/scripts/prefectuis detect src/
-
-# Scan and print structured JSON output
-~/.gemini/config/skills/prefectuis/scripts/prefectuis detect --json src/components/
-
-# Scan a running local web page
-~/.gemini/config/skills/prefectuis/scripts/prefectuis detect http://localhost:3000
+# From the skill directory
+scripts/prefectuis detect src/
+scripts/prefectuis detect --json src/components/
+scripts/prefectuis detect --scope color src/components/Button.tsx
+scripts/prefectuis detect --rules
 ```
+
+Exit 0 means no findings. Exit 1 means the JSON or text report contains candidates to confirm.
 
 ---
 
@@ -72,12 +78,12 @@ You can run the built-in anti-pattern detector on any directory or file without 
 
 Every time you invoke `/prefectuis`, it runs through six stages:
 
-1. **Setup Check**: Looks for `PRODUCT.md` and `DESIGN.md`. If this is a new project without them, it conducts a short interview and extracts your color and typography tokens first.
-2. **Issue Discovery**: Checks `.prefectuis/backlog.md` for open tasks. If none exist, it runs the detector on dirty Git files or your main layout, then selects the top one or two items by severity.
-3. **Review Gate**: Shows you the chosen items and the proposed plan. It waits for you to reply "proceed" or provide custom guidance before touching code.
-4. **Targeted Playbook Fix**: Maps the issue to the appropriate playbook (`layout`, `typeset`, `colorize`, `harden`, `adapt`, or `polish`) and applies the fix while respecting the Craft Floor.
-5. **Verification**: Re-runs the detector on touched files, runs your project build or typecheck, and reviews the Git diff to make sure nothing broke.
-6. **Document and Close**: Marks items complete in `.prefectuis/backlog.md`, records what changed in execution history, and lists the next recommended items for your next run.
+1. **Setup**: Finds the nearest `PRODUCT.md` and `DESIGN.md`. If either is missing, it asks a short set of questions and writes only what you answered or what is already in the code.
+2. **Discovery**: Reads `.prefectuis/backlog.md`, runs the detector, and checks the craft floor for issues the scanner cannot see. It keeps the top one or two items.
+3. **Review gate**: Shows the plan, including how you can tell each fix worked. It waits until you reply "proceed" or change the direction.
+4. **Playbook fix**: Applies `layout`, `typeset`, `colorize`, `harden`, `adapt`, or `polish` without restyling unrelated screens.
+5. **Verification**: Re-runs the detector, runs the project's check, reviews the diff, and exercises the control in a browser when one is available. Each check is reported as passed, failed, or unavailable.
+6. **Record**: Marks the items done in `.prefectuis/backlog.md` and names the next one or two.
 
 ---
 
@@ -103,12 +109,12 @@ The assistant will scan your project, show you the top one or two issues it foun
 
 PrefectUIS categorizes fixes into six distinct playbooks:
 
-- **layout**: Spacing rhythm, grid alignment, 8px spatial scale, and grouping related items together.
-- **typeset**: Line lengths bounded to 65–75 characters, heading hierarchies, `text-wrap: balance`, and tabular numbers.
-- **colorize**: Fixing WCAG AA contrast failures (minimum 4.5:1 for body text), tokenizing colors, and dark mode readability.
-- **harden**: Adding empty states, loading indicators, error recovery text, and preventing text overflow on long strings.
-- **adapt**: Responsive breakpoints, fluid widths, and minimum 44x44px touch targets on mobile.
-- **polish**: Consistent corner radii, custom text selection colors (`::selection`), themed focus rings (`:focus-visible`), and styled scrollbars.
+- **layout**: Spacing on the product scale, grouping, container queries, and flex or grid overflow.
+- **typeset**: 45–75 character measure, `text-wrap: balance` on headings, `text-wrap: pretty` on body, and tabular numbers.
+- **colorize**: WCAG AA contrast (4.5:1 body, 3:1 large text and controls), `oklch()` ramps, and tokens instead of raw hex.
+- **harden**: Labels, empty, loading, and error states, and long or translated strings.
+- **adapt**: Phone, tablet, and foldable structure, 24px minimum targets (44px for primary touch), and web shells such as Capacitor, Tauri, and Electron.
+- **polish**: Radii, `::selection`, `:focus-visible`, and motion that respects `prefers-reduced-motion`.
 
 ---
 
@@ -116,19 +122,20 @@ PrefectUIS categorizes fixes into six distinct playbooks:
 
 Every code edit must pass these baseline rules:
 
-- **Contrast**: Body text must have at least a 4.5:1 ratio against its background. Large text must meet 3:1.
-- **Spacing**: Headings must have noticeably more margin above them than below them.
-- **Typography**: Paragraphs must not run wider than 75 characters per line. Headings must avoid single trailing words.
-- **States**: Interactive elements must support hover, focus-visible, active, disabled, loading, empty, and error states.
-- **Browser defaults**: Text selection, custom scrollbars, and focus rings must match your palette rather than standard browser blue.
+- **Contrast**: Body and placeholder text at least 4.5:1. Large text, icons, and focus rings at least 3:1. Status is not color alone.
+- **Spacing**: Headings have more space above than below, on a consistent scale.
+- **Typography**: Prose stays within 45–75 characters. Headings use balanced wrapping; body copy uses `text-wrap: pretty`.
+- **Targets**: At least 24×24 CSS px, and 44×44 px for primary touch controls. Focus stays visible and is not covered by sticky bars.
+- **States**: Hover, focus-visible, active, disabled, loading, empty, and error, including recovery text.
+- **Browser surfaces**: Selection, scrollbars, and focus rings use the product palette.
 
-### Banned Patterns
+### Banned patterns
 - No gradient text.
-- No floating uppercase category labels (eyebrows) above headings.
-- No repetitive three-card grids used as default page structures.
-- No nested cards.
-- No raw emojis acting as icons; use SVGs with consistent stroke weights.
-- No monospace fonts outside actual code, timestamps, or technical data.
+- No uppercase eyebrow labels above headings.
+- No nested cards, and no default page made only of identical icon cards.
+- No emoji used as the icon system.
+- No monospace for ordinary copy.
+- No zero-blur decorative shadows unless the design system is neobrutalist.
 
 ---
 
@@ -139,26 +146,37 @@ Progress is recorded in `.prefectuis/backlog.md`. A typical entry looks like thi
 ```markdown
 # PrefectUIS Quality Journal
 
-> Context: PRODUCT.md | DESIGN.md
-> Last Run: 2026-11-02 00:15 | Open Items: 3 | Completed: 2
+> Context: [PRODUCT.md](../PRODUCT.md) | [DESIGN.md](../DESIGN.md)
+> Last Run: 2026-11-02 00:15 | Open: 3 | Done: 2
 
-## Next Recommended Focus
-1. src/components/Sidebar.tsx: Low contrast text on inactive tabs (colorize)
-2. src/pages/Settings.tsx: Fixed width breaks on screens under 768px (adapt)
+## Next recommended focus
 
-## Active UI Backlog
-- [ ] [P1] Low contrast text on inactive tabs - src/components/Sidebar.tsx
-- [ ] [P1] Fixed width breaks on mobile - src/pages/Settings.tsx
-- [ ] [P2] Missing empty state when list is clear - src/components/TodoList.tsx
+1. **src/components/Sidebar.tsx**: Inactive tab text is under 4.5:1 (`colorize`, `low-contrast-pair`)
+2. **src/pages/Settings.tsx**: Fixed width breaks under 768px (`adapt`, `fixed-width`)
 
-## Execution History
-### Run #1 - 2026-11-02 00:15
-- Target: src/components/Header.tsx
-- Issues Resolved:
-  1. Raised button contrast ratio from 3.2:1 to 5.2:1.
-  2. Added visible focus ring with 2px offset.
-- Playbooks Used: colorize, polish
-- Verification: Detector reported 0 findings; npm run build passed.
+## Active backlog
+
+### P0 / P1
+- [ ] **[P1] Inactive tab text is under 4.5:1** — `src/components/Sidebar.tsx` · rule `low-contrast-pair` · `colorize`
+- [ ] **[P1] Settings layout is a fixed width** — `src/pages/Settings.tsx` · rule `fixed-width` · `adapt`
+
+### P2
+- [ ] **[P2] Cleared list has no empty state** — `src/components/TodoList.tsx` · rule `partial-states` · `harden`
+
+## Execution history
+
+### Run 1 — 2026-11-02 00:15
+- **Targets**: `src/components/Header.tsx`
+- **Resolved**:
+  1. Button contrast 3.2:1 to 5.2:1 (`low-contrast-pair`, `colorize`).
+  2. Visible focus ring (`outline-removed`, `polish`).
+- **Verification**:
+  - Detector: passed (0 findings on touched files).
+  - Project check: passed (`npm run build`).
+  - Rendered: unavailable (no dev server).
+  - Craft floor: passed.
 ```
 
-When you invoke `/prefectuis` again, it reads this file, picks up where it stopped, and continues.
+The field list and severity rules live in `reference/backlog-template.md`. The next invocation reads this file and continues from the open items.
+
+Maintainers upgrading the skill itself should use `skill-improve.md`.

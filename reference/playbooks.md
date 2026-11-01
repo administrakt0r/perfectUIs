@@ -1,89 +1,90 @@
-# PrefectUIS Specialized Playbooks
+# PrefectUIS playbooks
 
-When an issue is selected from the backlog or diagnostic scan, PrefectUIS routes the resolution through the appropriate specialized playbook while upholding the Craft Floor.
+Fix the selected issue inside the current visual system. Read [craft-floor.md](craft-floor.md) before editing. A playbook does not authorize a new identity.
 
----
+Run the matching detector scope while assessing, then again after the edit:
 
-## 1. Playbook: Layout & Hierarchy (`layout`)
+```bash
+<skill-dir>/scripts/prefectuis detect --json --scope <layout|type|color|a11y|motion|all> <targets>
+```
 
-**Use for**: Inconsistent spacing, cluttered interfaces, weak visual rhythm, misaligned grids, weak visual grouping.
+## layout
 
-### Execution Steps
-1. **Analyze Spacing Rhythm**: Identify hard-coded margins, arbitrary paddings, and uneven gaps.
-2. **Apply Spatial Scale**: Standardize onto an intentional scale (4px, 8px, 12px, 16px, 24px, 32px, 48px, 64px).
-3. **Proximity & Grouping**:
-   - Enforce Gestalt law of proximity: elements within a logical component should be spaced closer together than the boundary between separate components.
-   - Headings must possess 2x to 3x more top margin than bottom margin.
-4. **Alignment**: Establish consistent vertical and horizontal baseline axes. Replace nested ad-hoc divs with CSS Flexbox (`gap`) or CSS Grid.
+**Use for** uneven rhythm, weak grouping, arbitrary spacing, overflow from nested flex or grid, and hierarchy that does not match the task.
 
----
+1. Name the primary path, what must sit together, and what must separate. Look at narrow, tablet, and wide widths before moving boxes.
+2. Map spacing onto the `DESIGN.md` scale. Replace one-off margins and Tailwind bracket spacing (`p-[13px]`) with scale steps or a token.
+3. Group with proximity first. Add a container only when the group needs its own boundary. Headings keep more space above than below.
+4. Use `gap` for sibling rhythm. Give flex and grid children `min-width: 0` when text or tables overflow.
+5. When a component's layout depends on its parent rather than the viewport, switch that component to a container query. Use `subgrid` when nested rows must line up with the parent tracks. Use `:has()` for parent state that is already in the DOM.
+6. In Tailwind, theme keys only. In CSS Modules, Emotion, or styled-components, read spacing from custom properties, not raw pixel literals copied into each file.
 
-## 2. Playbook: Typography & Readability (`typeset`)
+**Verify:** squinting still shows primary, then secondary, then groups. Keyboard order matches the visual order. Long and empty content do not collapse the structure. Detector scope `layout` has no unexplained hits.
 
-**Use for**: Poor contrast, illegible fonts, unreadable line lengths, messy heading scales, missing typographic hierarchy.
+## typeset
 
-### Execution Steps
-1. **Line Measure**: Restrict paragraph width to 65–75 characters (`max-width: 65ch`–`75ch`).
-2. **Hierarchy & Scale**: Establish clear size/weight distinctions:
-   - Page Title / H1: Boldest weight, balanced line wrap (`text-wrap: balance`).
-   - Section Headings (H2/H3): Proportional line-height (1.2–1.3), clear visual step-down.
-   - Body copy: Line-height 1.5–1.6 for comfortable reading.
-   - Small / Caption: Minimum 12px / 0.75rem with increased contrast to preserve legibility.
-3. **Tabular Numerals**: Apply `font-variant-numeric: tabular-nums` to financial data, timestamps, countdowns, and table columns.
+**Use for** flat hierarchy, unreadable measure, bad wrapping, and type that ignores the face or the theme.
 
----
+1. Keep the families `DESIGN.md` already chose. Add a face only when an existing role cannot do the job.
+2. Set body at 16px or larger. Keep prose between 45ch and 75ch, nearer 65–75ch for long reading. Widen leading as the measure grows.
+3. Set `text-wrap: balance` on headings and short centered text. Set `text-wrap: pretty` on body copy. Do not insert a hard break that lands mid-line on a phone.
+4. Make adjacent roles differ in size or weight, not only in color. Use `font-variant-numeric: tabular-nums` for figures that should not jitter.
+5. Load only the weights you use, with a metric-compatible fallback so text does not jump.
+6. Tailwind `text-[13px]` and `leading-[1.07]` become theme roles. Do not set `font-family: monospace` on body copy.
 
-## 3. Playbook: Color & Contrast (`colorize`)
+**Verify:** heading, body, label, and metadata are distinct without reading them. 200% zoom and a longer translation still fit. Scope `type` is clean or each remaining hit is an intentional break.
 
-**Use for**: WCAG AA contrast failures, washed out monochromatic UIs, harsh uncoordinated colors, dark mode contrast breaks.
+## colorize
 
-### Execution Steps
-1. **Audit Contrast Ratios**: Check foreground text against immediate background using the PrefectUIS detector.
-2. **Elevate Contrast**: Adjust lightness/chroma until contrast reaches ≥ 4.5:1 for body text (or ≥ 3.0:1 for large text).
-3. **Semantic Hierarchy**:
-   - Primary: Action items and key focal points.
-   - Neutral Surface & Text: Subtle tinted grays (derived from primary hue) rather than dead #000/#fff.
-   - Status: Distinct, accessible semantic colors (success, warning, error, info).
-4. **Tokenization**: Ensure colors map cleanly to `DESIGN.md` tokens rather than one-off hex values.
+**Use for** contrast failures, raw color literals, theme leaks, and status shown only by hue.
 
----
+1. List the roles already in `DESIGN.md`: canvas, elevated surface, primary text, secondary text, action, focus, border, and status. Edit roles, not one-off swatches.
+2. For a new ramp, use `oklch()`. Change lightness first. Drop chroma as colors approach white or black. Tint neutrals from the brand hue only when that hue is already part of the system.
+3. Meet 4.5:1 for body and placeholder text, 3:1 for large text and for non-text controls. Check hover, disabled, text on images, and both themes.
+4. Pair status color with a word or icon. Build the dark theme as its own elevation steps.
+5. Replace hex in components with tokens. Tailwind `text-[#112233]` and `bg-gray-400` on white are typical failures. CSS Modules and Emotion should reference the same custom properties as the stylesheet.
+6. Leave alpha-composited text alone until you have replaced it with an explicit color you can measure.
 
-## 4. Playbook: Hardening & States (`harden`)
+**Verify:** the primary action is the strongest color, and it is not also used as decoration. Scope `color` reports no unexplained pair. Where the detector cannot see imported tokens, measure the computed colors.
 
-**Use for**: Missing loading/empty/error states, text overflow clipping, unhandled long strings, fragile input controls.
+## harden
 
-### Execution Steps
-1. **State Completeness**:
-   - Empty State: When data is null/empty, render a purposeful illustration/icon, clear explanation, and primary action.
-   - Loading State: Provide smooth skeleton loaders or spinners that preserve the layout footprint without causing layout shift.
-   - Error State: Render friendly, actionable feedback when an action fails.
-2. **Overflow Resilience**:
-   - Add `overflow-wrap: break-word` and `hyphens: auto` where user-generated text could blow out boundaries.
-   - Ensure containers adapt to 2x or 3x text expansion (e.g. localization).
-3. **Form & Validation**: Ensure explicit labels (`<label for="...">`), visible error messages tied to inputs with `aria-describedby`, and disabled states with `aria-disabled`.
+**Use for** missing loading, empty, or error UI, unlabeled controls, overflow, and copy that assumes perfect data.
 
----
+1. For each async region, render loading (stable footprint, `aria-busy` when helpful), empty (what is missing and the next action), error (cause and recovery), and the success path.
+2. Give every input a visible label wired with `for`/`id`, or `aria-labelledby` when the visible label is elsewhere. Tie the error to the field with `aria-describedby`.
+3. Icon-only buttons need an accessible name. Images need `alt`, empty when decorative. Replace `div` click handlers with `button` or `a`.
+4. Constrain user text with `min-width: 0`, `overflow-wrap: break-word`, and a line clamp only for secondary preview text. Keep the full value available.
+5. Plan for strings about 30% longer, RTL, and large numbers. Format dates, numbers, and currency for the locale instead of hard-coding separators.
+6. Do not treat a spinner as the empty state, or a toast as the only error.
 
-## 5. Playbook: Responsive & Adaptation (`adapt`)
+**Verify:** keyboard users can complete and recover the task. Scope `a11y` is clean or each `partial-states` hit is disproved. Extreme strings do not overlap the next control.
 
-**Use for**: Mobile layout breaks, small touch targets, horizontal scrolling on small viewports, rigid fixed widths.
+## adapt
 
-### Execution Steps
-1. **Touch Targets**: Ensure all interactive controls have minimum hit targets of 44x44px on touch viewports (WCAG 2.5.8 requires at least 24x24 CSS px with surrounding clearance).
-2. **Fluid Typography & Containers**: Replace hardcoded pixel widths (`width: 500px`) with fluid max-widths (`max-width: 100%`, `clamp()`).
-3. **Stacking Behavior**: Transition multi-column grid layouts to single-column or scroll-snap lists on viewport widths < 768px.
-4. **Safe Area Insets**: Accommodate notch/bottom home indicator (`env(safe-area-inset-bottom)`).
+**Use for** layouts that only work at one width, targets that are too small, hover-only interaction, and shells that ignore the device.
 
----
+Adaptation changes the structure for the context. It does not scale the desktop frame down.
 
-## 6. Playbook: Micro-Detail Polish (`polish`)
+1. **Phone:** one column, primary actions in reach, 44px touch targets, no horizontal page scroll, type at least 16px so inputs do not zoom unexpectedly on iOS.
+2. **Tablet:** a real intermediate layout, often two panes. Do not stretch a phone column across the width, and do not keep a three-column desktop grid.
+3. **Foldable and dual-screen:** allow a hinge or fold to split list and detail. Test folded, unfolded, and a phone-width window on a large screen. Do not lock orientation to hide a bug.
+4. **Desktop and large monitors:** use the width for the task, with a max measure so lines do not run to the edges of a 4K display. Keep hover as an extra, not the only path.
+5. **Capacitor, Tauri, Electron, and other web shells:** respect safe-area insets, window resizing, and the system title bar. Do not trap keyboard focus. Do not assume a browser chrome or a phone viewport. Tauri and Electron still follow this web floor for HTML UI.
+6. Replace `width: 800px` and `w-[500px]` with `max-width: 100%`, a scale token, or `clamp()`. Page regions reflow at 200% zoom and at 320px wide.
+7. WCAG 2.2 requires at least 24×24 CSS px, or a 24px spacing circle that does not overlap the next target. Primary touch controls are 44×44. Dragging needs a click or keyboard alternative.
 
-**Use for**: Final pass before shipping, inconsistent corner radii, misaligned borders, jumpy transitions, neglected browser surfaces.
+**Verify:** 320px, about 768px, and a wide window. Focus is not hidden under a sticky bar. Scope `layout` plus target-size findings are resolved.
 
-### Execution Steps
-1. **Radii & Borders**: Consolidate border radii to match `DESIGN.md` (`rounded.sm`, `rounded.md`, `rounded.lg`).
-2. **Interactive Transitions**: Apply smooth, subtle transitions (e.g. `transition: color 150ms ease, background-color 150ms ease`). Avoid transition on `all`.
-3. **Browser Surface Styling**:
-   - `::selection`: Set background to tinted brand color and foreground to high-contrast text.
-   - `:focus-visible`: Implement clean 2px offset focus ring.
-4. **Code Cleanliness**: Remove dead styles, redundant inline properties, and debug logs.
+## polish
+
+**Use for** the last inconsistencies on a path that already works: radii, focus, selection, motion, and token drift. Polish does not redesign the screen.
+
+1. Classify each drift. A missing token is added once. A one-off implementation should use the shared component. A local defect is fixed in place. A conceptual mismatch is reported, not quietly redesigned.
+2. Radii, borders, and shadows come from `DESIGN.md`. Shadows keep an offset and a blur.
+3. Transition specific properties (`color`, `background-color`, `transform`) for about 150ms. Never `transition: all`.
+4. `::selection`, caret, scrollbar, and `:focus-visible` use the product palette. The focus ring stays visible on the surfaces behind it.
+5. If you add a view transition or a scroll-driven animation, it must be skippable: under `prefers-reduced-motion: reduce`, show the end state immediately. Motion is not the only sign that something changed.
+6. Remove dead classes, unused style, and debug attributes left by the edit. Do not sweep unrelated files.
+
+**Verify:** mouse, keyboard, and a narrow viewport on the same path. Scope `motion` is clean. The diff contains no new banned pattern from the craft floor.

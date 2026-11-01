@@ -1,50 +1,45 @@
-# PrefectUIS Backlog Specification
+# PrefectUIS backlog
 
-The file `.prefectuis/backlog.md` is the durable source of truth for UI quality and iterative progress across a codebase. Every invocation of PrefectUIS reads this file at startup and updates it upon completion.
-
----
-
-## File Structure Template
+`.prefectuis/backlog.md` is the durable journal for a codebase. Read it at the start of a run and update it before the run ends. Copy this structure when the file does not exist yet.
 
 ```markdown
 # PrefectUIS Quality Journal
 
-> Context: [PRODUCT.md](../PRODUCT.md) | [DESIGN.md](../DESIGN.md)  
-> Last Run: <YYYY-MM-DD HH:mm> | Open Items: <Count> | Completed: <Count>
+> Context: [PRODUCT.md](../PRODUCT.md) | [DESIGN.md](../DESIGN.md)
+> Last Run: <YYYY-MM-DD HH:mm> | Open: <count> | Done: <count>
 
----
+## Next recommended focus
 
-## 🎯 Next Recommended Focus
+1. **<file>**: <issue> (`<playbook>`, `<rule-id or manual>`)
+2. **<file>**: <issue> (`<playbook>`, `<rule-id or manual>`)
 
-The next run of PrefectUIS will automatically tackle:
-1. **[Target File / Component]**: <Short description of issue 1> (`playbook-name`)
-2. **[Target File / Component]**: <Short description of issue 2> (`playbook-name`)
+## Active backlog
 
----
+### P0 / P1
+- [ ] **[P1] Primary button text is 3.8:1** — `src/components/Button.tsx` · rule `low-contrast-pair` · `colorize`
+- [ ] **[P1] Orders table is 800px wide** — `src/pages/Orders.tsx` · rule `fixed-width` · `adapt`
 
-## 📋 Active UI Backlog
+### P2
+- [ ] **[P2] Order list has no empty state** — `src/components/OrderList.tsx` · rule `partial-states` · `harden`
 
-### High Priority (P0 / P1)
-- [ ] **[P1] Contrast failure on primary button hover** — `src/components/Button.tsx` (WCAG AA 3.8:1 < 4.5:1) · *playbook: `colorize`*
-- [ ] **[P1] Layout overflow on mobile viewport** — `src/pages/Dashboard.tsx` (Fixed 800px table breaks small screens) · *playbook: `adapt`*
+## Execution history
 
-### Medium / Polish Priority (P2)
-- [ ] **[P2] Missing empty state for transaction list** — `src/components/TransactionList.tsx` · *playbook: `harden`*
-- [ ] **[P2] Line length exceeds 90ch in guide content** — `src/pages/Docs.tsx` · *playbook: `typeset`*
-
----
-
-## 📜 Execution History
-
-### Run #1 — <YYYY-MM-DD HH:mm>
-- **Target**: `src/components/Header.tsx`
-- **Issues Resolved**:
-  1. Fixed low-contrast navigation links (increased ratio from 3.2:1 to 5.1:1).
-  2. Aligned navigation items to standard 16px spatial grid and added `:focus-visible` styling.
-- **Playbooks Used**: `colorize`, `layout`, `polish`
+### Run 1 — <YYYY-MM-DD HH:mm>
+- **Targets**: `src/components/Header.tsx`
+- **Resolved**:
+  1. Nav link contrast 3.2:1 to 5.1:1 (`low-contrast-pair`, `colorize`).
+  2. Focus ring was the browser default (`outline-removed`, `polish`).
 - **Verification**:
-  - PrefectUIS Detector: 0 findings (down from 2).
-  - Project Build: Passed.
-  - Craft Floor Diff Check: Verified clean semantic markup, custom focus ring, zero gradient text.
-- **Diff Summary**: Updated `Header.module.css` with semantic tokens and focus styles.
+  - Detector: passed (0 findings on touched files; was 2).
+  - Project check: passed (`npm run typecheck`).
+  - Rendered: passed at desktop and 390px, keyboard through the nav. Tablet width unavailable.
+  - Craft floor: passed (tokens, no gradient text, focus ring from the palette).
+- **Diff**: `Header.module.css` now uses `--ink` and a 2px focus ring.
 ```
+
+Rules for entries:
+
+- Severity is P0 (blocked or unlabeled control), P1 (WCAG AA, broken layout, missing recovery), or P2 (polish and consistency).
+- Include the detector rule id when the scanner reported it. Use `manual` when the craft floor caught it and the detector did not.
+- Verification lines say passed, failed, or unavailable. Do not write "passed" for a check that did not run.
+- The next-focus list is the following run's default pair, still subject to the review gate.

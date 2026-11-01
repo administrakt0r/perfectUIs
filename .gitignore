@@ -15,5 +15,9 @@ dist/
 build/
 *.log
 
+# Python
+__pycache__/
+*.pyc
+
 # PrefectUIS local runtime data (when run inside this repo)
 .prefectuis/

@@ -1,33 +1,46 @@
 #!/bin/sh
+# PrefectUIS launcher. `detect` runs the Python scanner in this directory.
 set -eu
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-case "$(uname -s 2>/dev/null || echo unknown)" in
-  Linux) os=linux ;;
-  Darwin) os=darwin ;;
-  MINGW*|MSYS*|CYGWIN*|Windows_NT) os=windows ;;
-  *) os=unknown ;;
-esac
-case "$(uname -m 2>/dev/null || echo unknown)" in
-  arm64|aarch64) arch=arm64 ;;
-  x86_64|amd64) arch=x64 ;;
-  *) arch=unknown ;;
-esac
 
-bin="$dir/bin/$os-$arch/prefectuis"
-[ "$os" = windows ] && bin="$bin.exe"
+usage() {
+  cat <<'EOF'
+prefectuis — frontend craft detector
 
-if [ ! -x "$bin" ]; then
-  echo "PrefectUIS engine binary not found or not executable for $os-$arch at $bin" >&2
-  exit 1
+Usage:
+  prefectuis detect [--json] [--scope layout|type|color|a11y|motion|all] [path...]
+  prefectuis detect --rules
+  prefectuis help
+
+Scans HTML, CSS, and component source for craft-floor defects.
+Exit 0 when the scan is clean, 1 when findings exist, 2 on usage errors.
+EOF
+}
+
+if [ "$#" -eq 0 ]; then
+  usage >&2
+  exit 2
 fi
 
-case " $* " in
-  *" --help "*|*" -h "*|*" help "*)
-    "$bin" "$@" 2>&1 | sed 's/impeccable/prefectuis/g'
+cmd=$1
+shift
+
+case "$cmd" in
+  -h|--help|help)
+    usage
     exit 0
     ;;
+  detect)
+    if ! command -v python3 >/dev/null 2>&1; then
+      echo "python3 is required to run the PrefectUIS detector." >&2
+      exit 1
+    fi
+    exec python3 "$dir/detect.py" "$@"
+    ;;
   *)
-    exec "$bin" "$@"
+    echo "Unknown command: $cmd" >&2
+    usage >&2
+    exit 2
     ;;
 esac
