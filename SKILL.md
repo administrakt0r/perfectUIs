@@ -1,6 +1,6 @@
 ---
 name: prefectuis
-description: Use when elevating, auditing, polishing, or systematically resolving UI design flaws, accessibility gaps, or visual inconsistency on any frontend codebase in focused, verifiable 1-2 issue increments.
+description: Use when auditing, polishing, or systematically resolving UI design flaws, accessibility gaps, or visual inconsistency on any frontend codebase in focused, verifiable 1-2 issue increments.
 argument-hint: "[target file or route (optional)]"
 user-invocable: true
 ---
