@@ -1,0 +1,19 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor & Temp files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Node & Build artifacts
+node_modules/
+dist/
+build/
+*.log
+
+# PrefectUIS local runtime data (when run inside this repo)
+.prefectuis/
