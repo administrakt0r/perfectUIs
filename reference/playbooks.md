@@ -1,11 +1,11 @@
-# PrefectUIS playbooks
+# perfectUIs playbooks
 
 Fix the selected issue inside the current visual system. Read [craft-floor.md](craft-floor.md) before editing. A playbook does not authorize a new identity.
 
 Run the matching detector scope while assessing, then again after the edit:
 
 ```bash
-<skill-dir>/scripts/prefectuis detect --json --scope <layout|type|color|a11y|motion|all> <targets>
+<skill-dir>/scripts/perfectuis detect --json --scope <layout|type|color|a11y|motion|all> <targets>
 ```
 
 ## layout
@@ -18,6 +18,14 @@ Run the matching detector scope while assessing, then again after the edit:
 4. Use `gap` for sibling rhythm. Give flex and grid children `min-width: 0` when text or tables overflow.
 5. When a component's layout depends on its parent rather than the viewport, switch that component to a container query. Use `subgrid` when nested rows must line up with the parent tracks. Use `:has()` for parent state that is already in the DOM.
 6. In Tailwind, theme keys only. In CSS Modules, Emotion, or styled-components, read spacing from custom properties, not raw pixel literals copied into each file.
+
+**Example:**
+```tsx
+// Before: arbitrary off-scale values
+<div className="p-[13px] mt-[7px]">
+// After: mapped to the 4-based spacing scale
+<div className="p-3 mt-2">
+```
 
 **Verify:** squinting still shows primary, then secondary, then groups. Keyboard order matches the visual order. Long and empty content do not collapse the structure. Detector scope `layout` has no unexplained hits.
 
@@ -32,6 +40,15 @@ Run the matching detector scope while assessing, then again after the edit:
 5. Load only the weights you use, with a metric-compatible fallback so text does not jump.
 6. Tailwind `text-[13px]` and `leading-[1.07]` become theme roles. Do not set `font-family: monospace` on body copy.
 
+**Example:**
+```css
+/* Before: default un-balanced wrapping and unbounded line length */
+h1 { text-wrap: wrap; }
+/* After: balanced heading and readable measure on body copy */
+h1 { text-wrap: balance; }
+p { text-wrap: pretty; max-inline-size: 68ch; }
+```
+
 **Verify:** heading, body, label, and metadata are distinct without reading them. 200% zoom and a longer translation still fit. Scope `type` is clean or each remaining hit is an intentional break.
 
 ## colorize
@@ -45,6 +62,14 @@ Run the matching detector scope while assessing, then again after the edit:
 5. Replace hex in components with tokens. Tailwind `text-[#112233]` and `bg-gray-400` on white are typical failures. CSS Modules and Emotion should reference the same custom properties as the stylesheet.
 6. Leave alpha-composited text alone until you have replaced it with an explicit color you can measure.
 
+**Example:**
+```css
+/* Before: fails WCAG AA (2.85:1 contrast against #ffffff) */
+color: #999; background: #fff;
+/* After: tokenized secondary text at 7.00:1 contrast against #ffffff */
+color: var(--text-secondary); /* --text-secondary: #595959 */
+```
+
 **Verify:** the primary action is the strongest color, and it is not also used as decoration. Scope `color` reports no unexplained pair. Where the detector cannot see imported tokens, measure the computed colors.
 
 ## harden
@@ -57,6 +82,14 @@ Run the matching detector scope while assessing, then again after the edit:
 4. Constrain user text with `min-width: 0`, `overflow-wrap: break-word`, and a line clamp only for secondary preview text. Keep the full value available.
 5. Plan for strings about 30% longer, RTL, and large numbers. Format dates, numbers, and currency for the locale instead of hard-coding separators.
 6. Do not treat a spinner as the empty state, or a toast as the only error.
+
+**Example:**
+```tsx
+// Before: icon-only button without accessible name
+<button><svg/></button>
+// After: accessible name declared and icon hidden from screen readers
+<button aria-label="Export report"><svg aria-hidden="true"/></button>
+```
 
 **Verify:** keyboard users can complete and recover the task. Scope `a11y` is clean or each `partial-states` hit is disproved. Extreme strings do not overlap the next control.
 
@@ -74,7 +107,15 @@ Adaptation changes the structure for the context. It does not scale the desktop 
 6. Replace `width: 800px` and `w-[500px]` with `max-width: 100%`, a scale token, or `clamp()`. Page regions reflow at 200% zoom and at 320px wide.
 7. WCAG 2.2 requires at least 24×24 CSS px, or a 24px spacing circle that does not overlap the next target. Primary touch controls are 44×44. Dragging needs a click or keyboard alternative.
 
-**Verify:** 320px, about 768px, and a wide window. Focus is not hidden under a sticky bar. Scope `layout` plus target-size findings are resolved.
+**Example:**
+```css
+/* Before: fixed width overflows viewports under 800px */
+.panel { width: 800px; }
+/* After: responsive width bounded by maximum measure */
+.panel { width: min(100%, 50rem); }
+```
+
+**Verify:** 320px, about 768px, and a wide window. Focus is not hidden under a sticky bar. Scope `layout` and scope `a11y` (target-size findings) are resolved.
 
 ## polish
 
@@ -86,5 +127,14 @@ Adaptation changes the structure for the context. It does not scale the desktop 
 4. `::selection`, caret, scrollbar, and `:focus-visible` use the product palette. The focus ring stays visible on the surfaces behind it.
 5. If you add a view transition or a scroll-driven animation, it must be skippable: under `prefers-reduced-motion: reduce`, show the end state immediately. Motion is not the only sign that something changed.
 6. Remove dead classes, unused style, and debug attributes left by the edit. Do not sweep unrelated files.
+
+**Example:**
+```css
+/* Before: animates all properties; destroys keyboard focus indicator */
+.btn { transition: all .3s; outline: none; }
+/* After: transitions specific properties; visible focus ring */
+.btn { transition: color .15s, background-color .15s; }
+.btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+```
 
 **Verify:** mouse, keyboard, and a narrow viewport on the same path. Scope `motion` is clean. The diff contains no new banned pattern from the craft floor.

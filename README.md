@@ -1,6 +1,6 @@
-# PrefectUIS
+# perfectUIs
 
-PrefectUIS is a UI review skill for coding agents. It proposes the one or two most important design or accessibility issues, waits for you to accept the plan, fixes those issues, checks the result, and records the rest in `.prefectuis/backlog.md`.
+perfectUIs is a UI review skill for coding agents. It proposes the one or two most important design or accessibility issues, waits for you to accept the plan, fixes those issues, checks the result, and records the rest in `.perfectuis/backlog.md`.
 
 It works in small, verifiable steps.
 
@@ -8,22 +8,22 @@ It works in small, verifiable steps.
 
 ## Quick Install Prompts
 
-Paste one of these prompts into your AI coding assistant to install PrefectUIS immediately.
+Paste one of these prompts into your AI coding assistant to install perfectUIs immediately.
 
 ### Prompt for Claude Code, Antigravity, Cursor, or Codex
 
 ```text
-Please install the PrefectUIS skill into your personal skills directory from GitHub:
-git clone https://github.com/administrakt0r/prefectuis.git <skills-dir>/prefectuis
+Please install the perfectUIs skill into your personal skills directory from GitHub:
+git clone https://github.com/administrakt0r/perfectuis.git <skills-dir>/perfectuis
 
 For reference:
-- Cursor: ~/.cursor/skills/prefectuis
-- Antigravity: ~/.gemini/config/skills/prefectuis
-- Claude Code: ~/.claude/skills/prefectuis
-- Codex / Universal: ~/.agents/skills/prefectuis
+- Cursor: ~/.cursor/skills/perfectuis (unverified)
+- Antigravity: ~/.gemini/config/skills/perfectuis (unverified)
+- Claude Code: ~/.claude/skills/perfectuis
+- Codex / Universal: ~/.agents/skills/perfectuis
 
-After cloning, ensure scripts/prefectuis is executable (chmod +x scripts/prefectuis). The detector needs python3.
-Confirm when the skill is installed and ready to invoke as /prefectuis.
+After cloning, ensure scripts/perfectuis is executable (chmod +x scripts/perfectuis). The detector needs python3.
+Confirm when the skill is installed and ready to invoke as /perfectuis.
 ```
 
 ---
@@ -32,42 +32,42 @@ Confirm when the skill is installed and ready to invoke as /prefectuis.
 
 If you prefer to install it yourself from the terminal, pick the command matching your tool:
 
-### Cursor
+### Cursor (unverified)
 ```bash
-git clone https://github.com/administrakt0r/prefectuis.git ~/.cursor/skills/prefectuis
-chmod +x ~/.cursor/skills/prefectuis/scripts/prefectuis
+git clone https://github.com/administrakt0r/perfectuis.git ~/.cursor/skills/perfectuis
+chmod +x ~/.cursor/skills/perfectuis/scripts/perfectuis
 ```
 
-### Google Antigravity
+### Google Antigravity (unverified)
 ```bash
-git clone https://github.com/administrakt0r/prefectuis.git ~/.gemini/config/skills/prefectuis
-chmod +x ~/.gemini/config/skills/prefectuis/scripts/prefectuis
+git clone https://github.com/administrakt0r/perfectuis.git ~/.gemini/config/skills/perfectuis
+chmod +x ~/.gemini/config/skills/perfectuis/scripts/perfectuis
 ```
 
 ### Claude Code
 ```bash
-git clone https://github.com/administrakt0r/prefectuis.git ~/.claude/skills/prefectuis
-chmod +x ~/.claude/skills/prefectuis/scripts/prefectuis
+git clone https://github.com/administrakt0r/perfectuis.git ~/.claude/skills/perfectuis
+chmod +x ~/.claude/skills/perfectuis/scripts/perfectuis
 ```
 
 ### Codex or Generic Agent Runtimes
 ```bash
-git clone https://github.com/administrakt0r/prefectuis.git ~/.agents/skills/prefectuis
-chmod +x ~/.agents/skills/prefectuis/scripts/prefectuis
+git clone https://github.com/administrakt0r/perfectuis.git ~/.agents/skills/perfectuis
+chmod +x ~/.agents/skills/perfectuis/scripts/perfectuis
 ```
 
 ---
 
 ## Running the detector
 
-The launcher is `scripts/prefectuis` inside the skill directory. It needs `python3`. Point it at files or directories (HTML, CSS, and component source). It does not scan a live URL.
+The launcher is `scripts/perfectuis` inside the skill directory. It needs `python3`. Point it at files or directories (HTML, CSS, and component source). It does not scan a live URL.
 
 ```bash
 # From the skill directory
-scripts/prefectuis detect src/
-scripts/prefectuis detect --json src/components/
-scripts/prefectuis detect --scope color src/components/Button.tsx
-scripts/prefectuis detect --rules
+scripts/perfectuis detect src/
+scripts/perfectuis detect --json src/components/
+scripts/perfectuis detect --scope color src/components/Button.tsx
+scripts/perfectuis detect --rules
 ```
 
 Exit 0 means no findings. Exit 1 means the JSON or text report contains candidates to confirm.
@@ -76,14 +76,14 @@ Exit 0 means no findings. Exit 1 means the JSON or text report contains candidat
 
 ## How It Works
 
-Every time you invoke `/prefectuis`, it runs through six stages:
+Every time you invoke `/perfectuis`, it runs through six stages:
 
 1. **Setup**: Finds the nearest `PRODUCT.md` and `DESIGN.md`. If either is missing, it asks a short set of questions and writes only what you answered or what is already in the code.
-2. **Discovery**: Reads `.prefectuis/backlog.md`, runs the detector, and checks the craft floor for issues the scanner cannot see. It keeps the top one or two items.
+2. **Discovery**: Reads `.perfectuis/backlog.md`, runs the detector, and checks the craft floor for issues the scanner cannot see. It keeps the top one or two items.
 3. **Review gate**: Shows the plan, including how you can tell each fix worked. It waits until you reply "proceed" or change the direction.
 4. **Playbook fix**: Applies `layout`, `typeset`, `colorize`, `harden`, `adapt`, or `polish` without restyling unrelated screens.
 5. **Verification**: Re-runs the detector, runs the project's check, reviews the diff, and exercises the control in a browser when one is available. Each check is reported as passed, failed, or unavailable.
-6. **Record**: Marks the items done in `.prefectuis/backlog.md` and names the next one or two.
+6. **Record**: Marks the items done in `.perfectuis/backlog.md` and names the next one or two.
 
 ---
 
@@ -92,22 +92,22 @@ Every time you invoke `/prefectuis`, it runs through six stages:
 ### Run on the current project
 In your AI chat, type:
 ```text
-/prefectuis
+/perfectuis
 ```
 
 The assistant will scan your project, show you the top one or two issues it found, and ask for your confirmation before making edits.
 
 ### Run on a specific file or route
 ```text
-/prefectuis src/components/Navbar.tsx
-/prefectuis pages/pricing.html
+/perfectuis src/components/Navbar.tsx
+/perfectuis pages/pricing.html
 ```
 
 ---
 
 ## The Six Playbooks
 
-PrefectUIS categorizes fixes into six distinct playbooks:
+perfectUIs categorizes fixes into six distinct playbooks:
 
 - **layout**: Spacing on the product scale, grouping, container queries, and flex or grid overflow.
 - **typeset**: 45–75 character measure, `text-wrap: balance` on headings, `text-wrap: pretty` on body, and tabular numbers.
@@ -141,10 +141,10 @@ Every code edit must pass these baseline rules:
 
 ## The Progress Journal
 
-Progress is recorded in `.prefectuis/backlog.md`. A typical entry looks like this:
+Progress is recorded in `.perfectuis/backlog.md`. A typical entry looks like this:
 
 ```markdown
-# PrefectUIS Quality Journal
+# perfectUIs Quality Journal
 
 > Context: [PRODUCT.md](../PRODUCT.md) | [DESIGN.md](../DESIGN.md)
 > Last Run: 2026-11-02 00:15 | Open: 3 | Done: 2

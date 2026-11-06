@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fixture checks for the PrefectUIS detector."""
+"""Fixture checks for the perfectUIs detector."""
 
 from __future__ import annotations
 
@@ -88,6 +88,42 @@ class DetectorTests(unittest.TestCase):
             path.write_text(source, encoding="utf-8")
             found = {item.rule for item in detect.scan_paths([path], set(detect.SCOPES["layout"]))}
         self.assertEqual(found, {"fixed-width"})
+
+    def test_zoom_blocked_rule(self) -> None:
+        blocked = '<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">'
+        allowed = '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        self.assertIn("zoom-blocked", rules_in(blocked, "index.html"))
+        self.assertNotIn("zoom-blocked", rules_in(allowed, "index.html"))
+
+    def test_missing_lang_rule(self) -> None:
+        missing = "<html><head><title>Test</title></head><body>Hello</body></html>"
+        declared = '<html lang="en"><head><title>Test</title></head><body>Hello</body></html>'
+        self.assertIn("missing-lang", rules_in(missing, "index.html"))
+        self.assertNotIn("missing-lang", rules_in(declared, "index.html"))
+
+    def test_positive_tabindex_rule(self) -> None:
+        bad = '<button tabindex="1" type="button">Submit</button>'
+        good = '<button tabindex="0" type="button">Submit</button><button tabIndex={-1}>Cancel</button>'
+        self.assertIn("positive-tabindex", rules_in(bad, "Form.tsx"))
+        self.assertNotIn("positive-tabindex", rules_in(good, "Form.tsx"))
+
+    def test_viewport_unit_height_rule(self) -> None:
+        bad_css = ".hero { height: 100vh; }"
+        good_css = ".hero { height: 100dvh; }"
+        self.assertIn("viewport-unit-height", rules_in(bad_css, "hero.css"))
+        self.assertNotIn("viewport-unit-height", rules_in(good_css, "hero.css"))
+
+    def test_root_font_size_rule(self) -> None:
+        bad = "html { font-size: 12px; }"
+        good = "html { font-size: 16px; } .card { font-size: 12px; }"
+        self.assertIn("root-font-size", rules_in(bad, "global.css"))
+        self.assertNotIn("root-font-size", rules_in(good, "global.css"))
+
+    def test_placeholder_label_rule(self) -> None:
+        bad = '<input type="text" placeholder="Search..." />'
+        good = '<label>Search <input type="text" placeholder="Search..." /></label>'
+        self.assertIn("placeholder-label", rules_in(bad, "Search.tsx"))
+        self.assertNotIn("placeholder-label", rules_in(good, "Search.tsx"))
 
 
 if __name__ == "__main__":

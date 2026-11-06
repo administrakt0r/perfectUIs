@@ -1,8 +1,8 @@
-# PrefectUIS Craft Floor
+# perfectUIs Craft Floor
 
 Every UI edit meets this floor. A pinned product or `DESIGN.md` decision overrides a default. It does not override a line marked **Ban**.
 
-The detector (`scripts/prefectuis detect --rules`) catches mechanical candidates. Hierarchy, copy, and whether a state actually helps still need a human look.
+The detector (`scripts/perfectuis detect --rules`) catches mechanical candidates. Hierarchy, copy, and whether a state actually helps still need a human look.
 
 ## Contrast and color
 
@@ -80,6 +80,6 @@ Text survives long strings, a missing string, and about 30% expansion for transl
 
 ## Detector limits
 
-`detect` can flag gradient text, eyebrow-like class clusters, hard shadows, emoji-only text nodes, color literals, simple contrast pairs (hex, rgb, oklch), weak gray utilities, arbitrary utilities, wide fixed widths, sub-12px type, unlabeled buttons, missing `alt`, unlabeled fields, clickable non-controls, removed outlines, `transition: all`, sub-24px target utilities, motion without `prefers-reduced-motion`, monospace on `body`/`html`, and fetch-like components missing loading, error, or empty cues.
+`detect` can flag gradient text, eyebrow-like class clusters, hard shadows, emoji-only text nodes, color literals, simple contrast pairs (hex, rgb, oklch), weak gray utilities, arbitrary utilities, wide fixed widths, sub-12px type, unlabeled buttons, missing `alt`, unlabeled fields, clickable non-controls, removed outlines, `transition: all`, sub-24px target utilities, motion without `prefers-reduced-motion`, monospace on `body`/`html`, and fetch-like components missing loading, error, or empty cues. It also checks viewport meta zoom restrictions, <html> missing lang, positive tabindex, 100vh height on mobile layouts, root font-size below 16px, and placeholder used as the only label.
 
 It cannot compute styles across imported tokens, CSS-in-JS theme functions, or the rendered cascade. Confirm contrast and target size in the browser when the source check is incomplete.

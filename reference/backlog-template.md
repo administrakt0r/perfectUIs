@@ -1,9 +1,9 @@
-# PrefectUIS backlog
+# perfectUIs backlog
 
-`.prefectuis/backlog.md` is the durable journal for a codebase. Read it at the start of a run and update it before the run ends. Copy this structure when the file does not exist yet.
+`.perfectuis/backlog.md` is the durable journal for a codebase. Read it at the start of a run and update it before the run ends. Copy this structure when the file does not exist yet.
 
 ```markdown
-# PrefectUIS Quality Journal
+# perfectUIs Quality Journal
 
 > Context: [PRODUCT.md](../PRODUCT.md) | [DESIGN.md](../DESIGN.md)
 > Last Run: <YYYY-MM-DD HH:mm> | Open: <count> | Done: <count>
@@ -39,7 +39,10 @@
 
 Rules for entries:
 
-- Severity is P0 (blocked or unlabeled control), P1 (WCAG AA, broken layout, missing recovery), or P2 (polish and consistency).
+- Severity:
+  - P0: blocks a task for some users (no keyboard access, unreadable text, unreachable content)
+  - P1: degrades the task (contrast < 4.5:1, layout breaks at 320/768px, missing error state)
+  - P2: polish (radius drift, motion, selection color)
 - Include the detector rule id when the scanner reported it. Use `manual` when the craft floor caught it and the detector did not.
 - Verification lines say passed, failed, or unavailable. Do not write "passed" for a check that did not run.
 - The next-focus list is the following run's default pair, still subject to the review gate.

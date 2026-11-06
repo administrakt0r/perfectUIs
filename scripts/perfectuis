@@ -1,17 +1,17 @@
 #!/bin/sh
-# PrefectUIS launcher. `detect` runs the Python scanner in this directory.
+# perfectUIs launcher. `detect` runs the Python scanner in this directory.
 set -eu
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 usage() {
   cat <<'EOF'
-prefectuis — frontend craft detector
+perfectuis — frontend craft detector
 
 Usage:
-  prefectuis detect [--json] [--scope layout|type|color|a11y|motion|all] [path...]
-  prefectuis detect --rules
-  prefectuis help
+  perfectuis detect [--json] [--scope layout|type|color|a11y|motion|all] [path...]
+  perfectuis detect --rules
+  perfectuis help
 
 Scans HTML, CSS, and component source for craft-floor defects.
 Exit 0 when the scan is clean, 1 when findings exist, 2 on usage errors.
@@ -33,7 +33,7 @@ case "$cmd" in
     ;;
   detect)
     if ! command -v python3 >/dev/null 2>&1; then
-      echo "python3 is required to run the PrefectUIS detector." >&2
+      echo "python3 is required to run the perfectUIs detector." >&2
       exit 1
     fi
     exec python3 "$dir/detect.py" "$@"

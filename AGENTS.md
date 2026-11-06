@@ -1,12 +1,12 @@
-# PrefectUIS
+# perfectUIs
 
-This repository is the PrefectUIS skill: incremental UI-quality instructions plus `scripts/prefectuis`. Artifacts stay branded `prefectuis` (`.prefectuis/backlog.md`, `scripts/prefectuis`). Do not add other design-tool brand names.
+This repository is the perfectUIs skill: incremental UI-quality instructions plus `scripts/perfectuis`. Artifacts stay branded `perfectuis` (`.perfectuis/backlog.md`, `scripts/perfectuis`). Do not add other design-tool brand names.
 
 ## Checks
 
 - `python3 scripts/test_detect.py`
-- `scripts/prefectuis detect --rules`
-- `scripts/prefectuis detect --json <path>`
+- `scripts/perfectuis detect --rules`
+- `scripts/perfectuis detect --json <path>`
 
 Detector findings are candidates. Do not weaken a test to hide a false positive; tighten the rule.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PrefectUIS source detector.
+"""perfectUIs source detector.
 
 Regex and small CSS color checks for craft-floor defects. Findings are
 candidates: confirm each one in context before editing.
@@ -39,7 +39,7 @@ SKIP_DIRS = {
     ".next",
     ".nuxt",
     ".output",
-    ".prefectuis",
+    ".perfectuis",
     "vendor",
 }
 
@@ -64,14 +64,20 @@ RULES = [
     ("motion-without-reduced", "P1", "polish", "Authored motion with no prefers-reduced-motion alternative."),
     ("monospace-body", "P2", "typeset", "Monospace set on body or html."),
     ("partial-states", "P2", "harden", "Fetch-like code without loading, error, and empty cues."),
+    ("zoom-blocked", "P1", "adapt", "Viewport meta blocks user zoom (user-scalable=no or maximum-scale=1)."),
+    ("missing-lang", "P1", "harden", "<html> element missing a lang attribute."),
+    ("positive-tabindex", "P2", "harden", "Positive tabindex disrupts natural focus order."),
+    ("viewport-unit-height", "P2", "layout", "height: 100vh on mobile layout; suggest 100dvh."),
+    ("root-font-size", "P1", "typeset", "Root font-size below 16px."),
+    ("placeholder-label", "P1", "harden", "Placeholder used as the only label."),
 ]
 
 RULE_INDEX = {rule_id: (severity, playbook, summary) for rule_id, severity, playbook, summary in RULES}
 
 SCOPES = {
     "all": set(RULE_INDEX),
-    "layout": {"arbitrary-utility", "fixed-width"},
-    "type": {"eyebrow-label", "tiny-text", "monospace-body"},
+    "layout": {"arbitrary-utility", "fixed-width", "viewport-unit-height"},
+    "type": {"eyebrow-label", "tiny-text", "monospace-body", "root-font-size"},
     "color": {"gradient-text", "hardcoded-color", "low-contrast-pair", "low-contrast-utility", "hard-offset-shadow"},
     "a11y": {
         "low-contrast-pair",
@@ -84,6 +90,10 @@ SCOPES = {
         "outline-removed",
         "undersized-target",
         "partial-states",
+        "zoom-blocked",
+        "missing-lang",
+        "positive-tabindex",
+        "placeholder-label",
     },
     "motion": {"motion-without-reduced", "transition-all"},
 }
@@ -428,6 +438,53 @@ def scan_text(path: Path, text: str, enabled: set[str]) -> list[Finding]:
                     "Fetch-like code has no visible cue for: " + ", ".join(missing) + ". Confirm before adding UI.",
                 )
 
+    if "zoom-blocked" in enabled:
+        for match in re.finditer(r"<meta\b([^>]*)>", source, flags=re.I):
+            attrs = match.group(1)
+            if re.search(r"\bname\s*=\s*[\"']viewport[\"']", attrs, re.I):
+                content_match = re.search(r"\bcontent\s*=\s*[\"']([^\"']*)[\"']", attrs, re.I)
+                if content_match:
+                    content = content_match.group(1)
+                    if re.search(r"user-scalable\s*=\s*(?:no|0)\b|maximum-scale\s*=\s*(?:1(?:\.0+)?|0(?:\.[0-9]+)?)\b", content, re.I):
+                        add(findings, enabled, "zoom-blocked", display, line_of(source, match.start()), "Viewport meta blocks user zoom.")
+
+    if "missing-lang" in enabled:
+        for match in re.finditer(r"<html\b([^>]*)>", source, flags=re.I):
+            attrs = match.group(1)
+            if not re.search(r"\blang\s*=", attrs, re.I):
+                add(findings, enabled, "missing-lang", display, line_of(source, match.start()), "<html> tag is missing a lang attribute.")
+
+    if "positive-tabindex" in enabled:
+        for match in re.finditer(r"\btabindex\s*=\s*[\"']?([1-9][0-9]*)[\"']?|\btabIndex\s*=\s*(?:[\"']?([1-9][0-9]*)[\"']?|\{\s*([1-9][0-9]*)\s*\})", source):
+            add(findings, enabled, "positive-tabindex", display, line_of(source, match.start()), "Positive tabindex disrupts natural focus order.")
+
+    if "viewport-unit-height" in enabled:
+        for match in re.finditer(r"(?<![\w-])height\s*:\s*100vh\b", source):
+            add(findings, enabled, "viewport-unit-height", display, line_of(source, match.start()), "height: 100vh causes mobile viewport overflow; suggest 100dvh.")
+        for match in re.finditer(r"(?:^|[\s\"'`])(h-screen)(?:[\s\"'`]|$)", source):
+            add(findings, enabled, "viewport-unit-height", display, line_of(source, match.start(1)), "h-screen uses 100vh; suggest h-dvh.")
+
+    if "root-font-size" in enabled:
+        for match in re.finditer(r"(?:^|\n)\s*(?:html|:root)\s*\{[^}]*(?<![\w-])font-size\s*:\s*([0-9]|1[0-5])px\b", source, flags=re.I):
+            add(findings, enabled, "root-font-size", display, line_of(source, match.start()), "Root font-size is below 16px.")
+
+    if "placeholder-label" in enabled:
+        for match in re.finditer(r"<(input|textarea)\b([^>]*)>", source, flags=re.I):
+            attrs = match.group(2)
+            if not re.search(r"\bplaceholder\s*=", attrs, re.I):
+                continue
+            if re.search(r"type\s*=\s*[\"']hidden[\"']", attrs, re.I):
+                continue
+            if re.search(r"aria-label\s*=|aria-labelledby\s*=|title\s*=", attrs, re.I):
+                continue
+            id_match = re.search(r"\bid\s*=\s*[\"']([^\"']+)[\"']", attrs)
+            if id_match and re.search(r"\bfor\s*=\s*[\"']" + re.escape(id_match.group(1)) + r"[\"']", source):
+                continue
+            before = source[max(0, match.start() - 400) : match.start()]
+            if re.search(r"<label\b[^>]*>[^<]*$", before, flags=re.I | re.S):
+                continue
+            add(findings, enabled, "placeholder-label", display, line_of(source, match.start()), f"<{match.group(1)}> uses placeholder as its only label.")
+
     return findings
 
 
@@ -452,7 +509,7 @@ def print_rules() -> None:
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="prefectuis detect", description="Scan frontend source for PrefectUIS craft defects.")
+    parser = argparse.ArgumentParser(prog="perfectuis detect", description="Scan frontend source for perfectUIs craft defects.")
     parser.add_argument("--json", action="store_true", help="Print findings as JSON.")
     parser.add_argument("--rules", action="store_true", help="List detector rules and exit.")
     parser.add_argument("--scope", default="all", choices=sorted(SCOPES), help="Limit rules to one domain.")
