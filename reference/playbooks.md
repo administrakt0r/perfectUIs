@@ -34,7 +34,7 @@ Run the matching detector scope while assessing, then again after the edit:
 **Use for** flat hierarchy, unreadable measure, bad wrapping, and type that ignores the face or the theme.
 
 1. Keep the families `DESIGN.md` already chose. Add a face only when an existing role cannot do the job.
-2. Set body at 16px or larger. Keep prose between 45ch and 75ch, nearer 65–75ch for long reading. Widen leading as the measure grows.
+2. Set body at 16px or larger. Keep prose between 45ch and 75ch, nearer 65–75ch for long reading. Widen leading as the measure grows. Align text to the start edge; avoid `text-align: justify`. Negative tracking on headings stops at -0.04em.
 3. Set `text-wrap: balance` on headings and short centered text. Set `text-wrap: pretty` on body copy. Do not insert a hard break that lands mid-line on a phone.
 4. Make adjacent roles differ in size or weight, not only in color. Use `font-variant-numeric: tabular-nums` for figures that should not jitter.
 5. Load only the weights you use, with a metric-compatible fallback so text does not jump.
@@ -79,16 +79,18 @@ color: var(--text-secondary); /* --text-secondary: #595959 */
 1. For each async region, render loading (stable footprint, `aria-busy` when helpful), empty (what is missing and the next action), error (cause and recovery), and the success path.
 2. Give every input a visible label wired with `for`/`id`, or `aria-labelledby` when the visible label is elsewhere. Tie the error to the field with `aria-describedby`.
 3. Icon-only buttons need an accessible name. Images need `alt`, empty when decorative. Replace `div` click handlers with `button` or `a`.
-4. Constrain user text with `min-width: 0`, `overflow-wrap: break-word`, and a line clamp only for secondary preview text. Keep the full value available.
-5. Plan for strings about 30% longer, RTL, and large numbers. Format dates, numbers, and currency for the locale instead of hard-coding separators.
-6. Do not treat a spinner as the empty state, or a toast as the only error.
+4. Every `<button>` has an explicit `type` attribute. Use `type="button"` for actions that do not submit a form; `type="submit"` for the primary form submit. Without it the browser defaults to `submit`, which submits the nearest ancestor form on Enter or click.
+5. Never set `aria-hidden="true"` on an element that contains a focusable child (`<a>`, `<button>`, `<input>`, etc.). Assistive technology hides the content from the accessibility tree while keyboard focus can still reach it. Use `aria-hidden` only on decorative elements such as SVG icons.
+6. Constrain user text with `min-width: 0`, `overflow-wrap: break-word`, and a line clamp only for secondary preview text. Keep the full value available.
+7. Plan for strings about 30% longer, RTL, and large numbers. Format dates, numbers, and currency for the locale instead of hard-coding separators.
+8. Do not treat a spinner as the empty state, or a toast as the only error.
 
 **Example:**
 ```tsx
-// Before: icon-only button without accessible name
+// Before: icon-only button without accessible name and no type
 <button><svg/></button>
-// After: accessible name declared and icon hidden from screen readers
-<button aria-label="Export report"><svg aria-hidden="true"/></button>
+// After: accessible name, icon hidden from screen readers, explicit type
+<button type="button" aria-label="Export report"><svg aria-hidden="true"/></button>
 ```
 
 **Verify:** keyboard users can complete and recover the task. Scope `a11y` is clean or each `partial-states` hit is disproved. Extreme strings do not overlap the next control.
@@ -106,6 +108,7 @@ Adaptation changes the structure for the context. It does not scale the desktop 
 5. **Capacitor, Tauri, Electron, and other web shells:** respect safe-area insets, window resizing, and the system title bar. Do not trap keyboard focus. Do not assume a browser chrome or a phone viewport. Tauri and Electron still follow this web floor for HTML UI.
 6. Replace `width: 800px` and `w-[500px]` with `max-width: 100%`, a scale token, or `clamp()`. Page regions reflow at 200% zoom and at 320px wide.
 7. WCAG 2.2 requires at least 24×24 CSS px, or a 24px spacing circle that does not overlap the next target. Primary touch controls are 44×44. Dragging needs a click or keyboard alternative.
+8. When a header or navigation bar uses `position: sticky` or `position: fixed`, add `scroll-padding-top` (or the matching side) to the scroll container so keyboard focus is never hidden beneath it (WCAG 2.4.11). Confirm in the browser: tab through the page and check that the focused element is fully visible.
 
 **Example:**
 ```css
@@ -122,7 +125,7 @@ Adaptation changes the structure for the context. It does not scale the desktop 
 **Use for** the last inconsistencies on a path that already works: radii, focus, selection, motion, and token drift. Polish does not redesign the screen.
 
 1. Classify each drift. A missing token is added once. A one-off implementation should use the shared component. A local defect is fixed in place. A conceptual mismatch is reported, not quietly redesigned.
-2. Radii, borders, and shadows come from `DESIGN.md`. Shadows keep an offset and a blur.
+2. Radii, borders, and shadows come from `DESIGN.md`. Shadows keep an offset and a blur. Declare elevation once: choose either a clean border or a soft shadow, never both stacked on the same container.
 3. Transition specific properties (`color`, `background-color`, `transform`) for about 150ms. Never `transition: all`.
 4. `::selection`, caret, scrollbar, and `:focus-visible` use the product palette. The focus ring stays visible on the surfaces behind it.
 5. If you add a view transition or a scroll-driven animation, it must be skippable: under `prefers-reduced-motion: reduce`, show the end state immediately. Motion is not the only sign that something changed.

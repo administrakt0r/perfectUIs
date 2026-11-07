@@ -11,11 +11,45 @@ perfectuis — frontend craft detector
 Usage:
   perfectuis detect [--json] [--scope layout|type|color|a11y|motion|all] [path...]
   perfectuis detect --rules
+  perfectuis update
   perfectuis help
 
 Scans HTML, CSS, and component source for craft-floor defects.
 Exit 0 when the scan is clean, 1 when findings exist, 2 on usage errors.
 EOF
+}
+
+check_weekly_update() {
+  repo_dir="$dir/.."
+  [ -d "$repo_dir/.git" ] || return 0
+  command -v git >/dev/null 2>&1 || return 0
+
+  stamp_file="$repo_dir/.last_update_check"
+  now=$(date +%s 2>/dev/null || echo 0)
+  [ "$now" -eq 0 ] && return 0
+
+  last_check=0
+  if [ -f "$stamp_file" ]; then
+    last_check=$(cat "$stamp_file" 2>/dev/null || echo 0)
+  fi
+
+  # 604800 seconds = 7 days
+  elapsed=$((now - last_check))
+  if [ "$elapsed" -lt 604800 ]; then
+    return 0
+  fi
+
+  # Record check time to enforce weekly throttle
+  echo "$now" > "$stamp_file" 2>/dev/null || true
+
+  # Check upstream quietly with short network timeouts
+  if git -c http.connectTimeout=3 -c http.timeout=3 -C "$repo_dir" fetch --quiet origin 2>/dev/null; then
+    local_hash=$(git -C "$repo_dir" rev-parse HEAD 2>/dev/null || echo "")
+    remote_hash=$(git -C "$repo_dir" rev-parse origin/main 2>/dev/null || git -C "$repo_dir" rev-parse origin/master 2>/dev/null || echo "")
+    if [ -n "$local_hash" ] && [ -n "$remote_hash" ] && [ "$local_hash" != "$remote_hash" ]; then
+      echo "[perfectUIs] A newer version is available on GitHub. Run 'scripts/perfectuis update' to upgrade." >&2
+    fi
+  fi
 }
 
 if [ "$#" -eq 0 ]; then
@@ -36,7 +70,28 @@ case "$cmd" in
       echo "python3 is required to run the perfectUIs detector." >&2
       exit 1
     fi
+    check_weekly_update
     exec python3 "$dir/detect.py" "$@"
+    ;;
+  update)
+    repo_dir="$dir/.."
+    if ! command -v git >/dev/null 2>&1; then
+      echo "git is required to update perfectUIs." >&2
+      exit 1
+    fi
+    if ! git -C "$repo_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      echo "perfectUIs is not installed from a git repository. Cannot update." >&2
+      exit 1
+    fi
+    echo "Updating perfectUIs from GitHub..."
+    if git -C "$repo_dir" pull --ff-only; then
+      date +%s > "$repo_dir/.last_update_check" 2>/dev/null || true
+      echo "perfectUIs is up to date."
+      exit 0
+    else
+      echo "Failed to update perfectUIs via fast-forward pull. Check git status or remote." >&2
+      exit 1
+    fi
     ;;
   *)
     echo "Unknown command: $cmd" >&2

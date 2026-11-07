@@ -7,6 +7,7 @@ This repository is the perfectUIs skill: incremental UI-quality instructions plu
 - `python3 scripts/test_detect.py`
 - `scripts/perfectuis detect --rules`
 - `scripts/perfectuis detect --json <path>`
+- `scripts/perfectuis update`
 
 Detector findings are candidates. Do not weaken a test to hide a false positive; tighten the rule.
 

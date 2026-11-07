@@ -22,9 +22,10 @@ The detector (`scripts/perfectuis detect --rules`) catches mechanical candidates
 - Reading measure is **45–75ch**. Long prose sits nearer **65–75ch**.
 - Headings and short centered lines use `text-wrap: balance`. Body copy uses `text-wrap: pretty`. Both are progressive enhancements.
 - Break a heading by hand only between phrases, and check that break at every width.
-- Line-height follows the face, the measure, and the theme. Light text on dark needs slightly more leading, a touch more tracking, and sometimes one step more weight.
+- Line-height follows the face, the measure, and the theme. Light text on dark needs slightly more leading, a touch more tracking, and sometimes one step more weight. Negative tracking on headings stops at -0.04em (-0.02em to -0.03em reads cleaner); over-tight tracking causes glyph collisions.
 - Role steps are obvious in size or weight. Repeated roles stay identical.
 - Tabular numerals for columns of numbers, prices, and timers.
+- Text is left-aligned (or right-aligned for RTL). **Ban:** `text-align: justify` on responsive web text; it creates uneven word spacing and rivers.
 - Monospace is for code, identifiers, and measurement. **Ban:** monospace as a costume for ordinary UI copy.
 
 ## Space and structure
@@ -40,14 +41,16 @@ The detector (`scripts/perfectuis detect --rules`) catches mechanical candidates
 
 **Ban:** a card nested inside a card.
 
+**Ban:** declaring elevation twice (a border AND a wide soft shadow together on the same card). Pick one depth cue.
+
 **Ban:** a kicker or eyebrow (tiny uppercase category label) above a heading. The heading carries the label's job.
 
-Defaults to reject unless `DESIGN.md` already chose them: identical icon-plus-heading-plus-text cards as the page structure, a hero metric with a big number and three supporting stats, decorative section numbers, a modal for a task that does not need interruption, and a thick colored side border on cards, rows, or alerts.
+Defaults to reject unless `DESIGN.md` already chose them: identical icon-plus-heading-plus-text cards as the page structure, a hero metric with a big number and three supporting stats, decorative section numbers, decorative grid lines or repeating gradient stripes on backgrounds without an underlying canvas, a modal for a task that does not need interruption, and a thick colored side border on cards, rows, or alerts.
 
 ## Targets, focus, and input
 
 - WCAG 2.2 target size minimum is **24×24 CSS px**, or spacing that keeps a 24px circle around the target clear of the next target. Primary touch controls are **44×44 px**.
-- Every control has visible `:focus-visible`. Do not remove `outline` without a replacement. Focus contrast is at least 3:1, and sticky headers or footers must not cover the focused item (WCAG 2.2 Focus Not Obscured).
+- Every control has visible `:focus-visible`. Do not remove `outline` without a replacement. Focus contrast is at least 3:1. Sticky or fixed headers and footers must not cover the focused item: add `scroll-padding-top` (or the appropriate side) to `html` or the scroll container so the focused element stays in view (WCAG 2.4.11 Focus Not Obscured).
 - Anything draggable also works with a single click or keyboard action (WCAG 2.2 Dragging Movements).
 - Hover does not hide the only copy, action, or status.
 - Hit order matches visual order and DOM order.
@@ -76,10 +79,10 @@ Text survives long strings, a missing string, and about 30% expansion for transl
 
 - **Tailwind:** spacing, color, type, and radius come from the theme. Arbitrary values such as `p-[13px]` or `text-[#333]` are a defect when a token exists or the value is off the scale. A one-off that repeats becomes a token.
 - **CSS Modules, Vue scoped CSS, styled-components, Emotion:** put color and space in custom properties or the theme object. Do not repeat hex in component styles. Class names describe the role.
-- **React, Next.js, Vue, Svelte, Astro:** use `button` and `a` for actions and navigation. Do not put click handlers on `div` or `span`. Images have `alt` (`alt=""` only when the image is decorative).
+- **React, Next.js, Vue, Svelte, Astro:** use `button` and `a` for actions and navigation. Do not put click handlers on `div` or `span`. Every `<button>` has an explicit `type` attribute (`type="button"` or `type="submit"`); the default is `submit`, which submits the nearest form. Images have `alt` (`alt=""` only when the image is decorative). Never set `aria-hidden="true"` on an element that contains a focusable child.
 
 ## Detector limits
 
-`detect` can flag gradient text, eyebrow-like class clusters, hard shadows, emoji-only text nodes, color literals, simple contrast pairs (hex, rgb, oklch), weak gray utilities, arbitrary utilities, wide fixed widths, sub-12px type, unlabeled buttons, missing `alt`, unlabeled fields, clickable non-controls, removed outlines, `transition: all`, sub-24px target utilities, motion without `prefers-reduced-motion`, monospace on `body`/`html`, and fetch-like components missing loading, error, or empty cues. It also checks viewport meta zoom restrictions, <html> missing lang, positive tabindex, 100vh height on mobile layouts, root font-size below 16px, and placeholder used as the only label.
+`detect` can flag gradient text, eyebrow-like class clusters, hard shadows, emoji-only text nodes, color literals, simple contrast pairs (hex, rgb, oklch), weak gray utilities, arbitrary utilities, wide fixed widths, sub-12px type, unlabeled buttons, missing `alt`, unlabeled fields, clickable non-controls, removed outlines, `transition: all`, sub-24px target utilities, motion without `prefers-reduced-motion`, monospace on `body`/`html`, and fetch-like components missing loading, error, or empty cues. It also checks viewport meta zoom restrictions, `<html>` missing lang, positive tabindex, 100vh height on mobile layouts, root font-size below 16px, placeholder used as the only label, sticky or fixed headers with no `scroll-padding`, buttons without an explicit `type` attribute, `aria-hidden="true"` on elements containing focusable children, `text-align: justify`, and extreme negative letter-spacing below -0.04em.
 
 It cannot compute styles across imported tokens, CSS-in-JS theme functions, or the rendered cascade. Confirm contrast and target size in the browser when the source check is incomplete.

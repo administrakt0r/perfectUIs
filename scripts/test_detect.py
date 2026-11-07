@@ -125,6 +125,84 @@ class DetectorTests(unittest.TestCase):
         self.assertIn("placeholder-label", rules_in(bad, "Search.tsx"))
         self.assertNotIn("placeholder-label", rules_in(good, "Search.tsx"))
 
+    def test_focus_not_obscured_rule(self) -> None:
+        bad = "header { position: sticky; top: 0; background: white; }"
+        good = "header { position: sticky; top: 0; }\nhtml { scroll-padding-top: 60px; }"
+        self.assertIn("focus-not-obscured", rules_in(bad, "layout.css"))
+        self.assertNotIn("focus-not-obscured", rules_in(good, "layout.css"))
+        # Non-CSS files are not checked
+        self.assertNotIn("focus-not-obscured", rules_in(bad, "Layout.tsx"))
+
+    def test_missing_button_type_rule(self) -> None:
+        bad = '<button onClick={save}>Save</button>'
+        good_button = '<button type="button" onClick={save}>Save</button>'
+        good_submit = '<button type="submit">Submit</button>'
+        self.assertIn("missing-button-type", rules_in(bad, "Form.tsx"))
+        self.assertNotIn("missing-button-type", rules_in(good_button, "Form.tsx"))
+        self.assertNotIn("missing-button-type", rules_in(good_submit, "Form.tsx"))
+
+    def test_aria_hidden_focusable_rule(self) -> None:
+        bad_button = '<div aria-hidden="true"><button type="button">Close</button></div>'
+        bad_link = '<div aria-hidden="true"><a href="/home">Home</a></div>'
+        bad_jsx = '<div aria-hidden={true}><button type="button">x</button></div>'
+        good_svg = '<svg aria-hidden="true"><path d="M0 0"/></svg>'
+        good_text = '<div aria-hidden="true">decorative</div>'
+        self.assertIn("aria-hidden-focusable", rules_in(bad_button, "Modal.tsx"))
+        self.assertIn("aria-hidden-focusable", rules_in(bad_link, "Nav.tsx"))
+        self.assertIn("aria-hidden-focusable", rules_in(bad_jsx, "Icon.tsx"))
+        self.assertNotIn("aria-hidden-focusable", rules_in(good_svg, "Icon.tsx"))
+        self.assertNotIn("aria-hidden-focusable", rules_in(good_text, "Widget.tsx"))
+
+    def test_eyebrow_label_rule(self) -> None:
+        bad = '<span className="uppercase tracking-widest text-xs">Category</span>'
+        good = '<h2 className="text-xl font-bold">Category</h2>'
+        self.assertIn("eyebrow-label", rules_in(bad, "Header.tsx"))
+        self.assertNotIn("eyebrow-label", rules_in(good, "Header.tsx"))
+
+    def test_hard_offset_shadow_rule(self) -> None:
+        bad = ".card { box-shadow: 4px 4px 0 #000; }"
+        good = ".card { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }"
+        self.assertIn("hard-offset-shadow", rules_in(bad, "card.css"))
+        self.assertNotIn("hard-offset-shadow", rules_in(good, "card.css"))
+
+    def test_transition_all_rule(self) -> None:
+        bad = ".btn { transition: all 150ms ease; }"
+        good = ".btn { transition: color 150ms ease, background-color 150ms ease; }"
+        self.assertIn("transition-all", rules_in(bad, "btn.css"))
+        self.assertNotIn("transition-all", rules_in(good, "btn.css"))
+
+    def test_tiny_text_rule(self) -> None:
+        bad = ".note { font-size: 10px; }"
+        good = ".note { font-size: 12px; }"
+        self.assertIn("tiny-text", rules_in(bad, "note.css"))
+        self.assertNotIn("tiny-text", rules_in(good, "note.css"))
+
+    def test_monospace_body_rule(self) -> None:
+        bad = "body { font-family: monospace; }"
+        good = "body { font-family: sans-serif; } code { font-family: monospace; }"
+        self.assertIn("monospace-body", rules_in(bad, "global.css"))
+        self.assertNotIn("monospace-body", rules_in(good, "global.css"))
+
+    def test_justified_text_rule(self) -> None:
+        bad_css = ".prose { text-align: justify; }"
+        good_css = ".prose { text-align: left; }"
+        bad_tw = '<p className="text-justify">Body copy</p>'
+        good_tw = '<p className="text-left">Body copy</p>'
+        self.assertIn("justified-text", rules_in(bad_css, "article.css"))
+        self.assertNotIn("justified-text", rules_in(good_css, "article.css"))
+        self.assertIn("justified-text", rules_in(bad_tw, "Article.tsx"))
+        self.assertNotIn("justified-text", rules_in(good_tw, "Article.tsx"))
+
+    def test_extreme_negative_tracking_rule(self) -> None:
+        bad_css = "h1 { letter-spacing: -0.05em; }"
+        good_css = "h1 { letter-spacing: -0.02em; }"
+        bad_tw = '<h1 className="tracking-[-0.05em]">Title</h1>'
+        good_tw = '<h1 className="tracking-[-0.02em]">Title</h1>'
+        self.assertIn("extreme-negative-tracking", rules_in(bad_css, "hero.css"))
+        self.assertNotIn("extreme-negative-tracking", rules_in(good_css, "hero.css"))
+        self.assertIn("extreme-negative-tracking", rules_in(bad_tw, "Hero.tsx"))
+        self.assertNotIn("extreme-negative-tracking", rules_in(good_tw, "Hero.tsx"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -15,7 +15,9 @@ Close real gaps between this skill and current, widely shipped UI practice. Pref
 
 ## Research
 
-Check WCAG 2.2 level AA. Treat AAA as optional unless a product explicitly asks for it. For any CSS or platform behavior you want the skill to require, confirm it in current MDN or the relevant platform docs. You may read design references already installed on this machine. Rewrite every idea in perfectUIs language.
+Check WCAG 2.2 level AA. Treat AAA as optional unless a product explicitly asks for it. For any CSS or platform behavior you want the skill to require, confirm it in current MDN or the relevant platform docs.
+
+Inspect official design references, particularly the official GitHub repository at `https://github.com/pbakaus/impeccable` (especially the `skill/reference/` directory for craft-floor, playbooks, and heuristics). Review upstream craft floor rules, anti-patterns, heuristics, and platform checks for useful UI quality patterns to adapt. Distill any relevant techniques into perfectUIs' simplified, incremental model: dependency-free Python regex checks and focused playbook guidance. Rewrite every idea in perfectUIs language.
 
 Do not copy another tool's names, commands, directory names, or sentences into any file here. Do not add product or tool brand names other than perfectUIs.
 

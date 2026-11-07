@@ -16,10 +16,14 @@
 ## Active backlog
 
 ### P0 / P1
+- [ ] **[P0] Dialog contains interactive buttons inside aria-hidden** — `src/components/Modal.tsx` · rule `aria-hidden-focusable` · `harden`
 - [ ] **[P1] Primary button text is 3.8:1** — `src/components/Button.tsx` · rule `low-contrast-pair` · `colorize`
+- [ ] **[P1] Sticky header lacks scroll-padding** — `src/styles/nav.css` · rule `focus-not-obscured` · `adapt`
 - [ ] **[P1] Orders table is 800px wide** — `src/pages/Orders.tsx` · rule `fixed-width` · `adapt`
 
 ### P2
+- [ ] **[P2] Filter button has no explicit type attribute** — `src/components/Filter.tsx` · rule `missing-button-type` · `harden`
+- [ ] **[P2] Article copy uses justified text** — `src/components/Article.tsx` · rule `justified-text` · `typeset`
 - [ ] **[P2] Order list has no empty state** — `src/components/OrderList.tsx` · rule `partial-states` · `harden`
 
 ## Execution history

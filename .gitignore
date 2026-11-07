@@ -21,3 +21,4 @@ __pycache__/
 
 # perfectUIs local runtime data (when run inside this repo)
 .perfectuis/
+.last_update_check

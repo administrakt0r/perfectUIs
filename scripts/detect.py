@@ -70,14 +70,19 @@ RULES = [
     ("viewport-unit-height", "P2", "layout", "height: 100vh on mobile layout; suggest 100dvh."),
     ("root-font-size", "P1", "typeset", "Root font-size below 16px."),
     ("placeholder-label", "P1", "harden", "Placeholder used as the only label."),
+    ("focus-not-obscured", "P1", "adapt", "Sticky or fixed header/footer with no scroll-padding in the file (WCAG 2.4.11)."),
+    ("missing-button-type", "P2", "harden", "Button without an explicit type attribute (defaults to submit)."),
+    ("aria-hidden-focusable", "P0", "harden", "aria-hidden=\'true\' on an element containing focusable children."),
+    ("justified-text", "P2", "typeset", "text-align: justify creates erratic spacing and reading rivers on the web."),
+    ("extreme-negative-tracking", "P2", "typeset", "letter-spacing tighter than -0.04em causes glyph collisions."),
 ]
 
 RULE_INDEX = {rule_id: (severity, playbook, summary) for rule_id, severity, playbook, summary in RULES}
 
 SCOPES = {
     "all": set(RULE_INDEX),
-    "layout": {"arbitrary-utility", "fixed-width", "viewport-unit-height"},
-    "type": {"eyebrow-label", "tiny-text", "monospace-body", "root-font-size"},
+    "layout": {"arbitrary-utility", "fixed-width", "viewport-unit-height", "focus-not-obscured"},
+    "type": {"eyebrow-label", "tiny-text", "monospace-body", "root-font-size", "justified-text", "extreme-negative-tracking"},
     "color": {"gradient-text", "hardcoded-color", "low-contrast-pair", "low-contrast-utility", "hard-offset-shadow"},
     "a11y": {
         "low-contrast-pair",
@@ -94,6 +99,9 @@ SCOPES = {
         "missing-lang",
         "positive-tabindex",
         "placeholder-label",
+        "focus-not-obscured",
+        "missing-button-type",
+        "aria-hidden-focusable",
     },
     "motion": {"motion-without-reduced", "transition-all"},
 }
@@ -484,6 +492,72 @@ def scan_text(path: Path, text: str, enabled: set[str]) -> list[Finding]:
             if re.search(r"<label\b[^>]*>[^<]*$", before, flags=re.I | re.S):
                 continue
             add(findings, enabled, "placeholder-label", display, line_of(source, match.start()), f"<{match.group(1)}> uses placeholder as its only label.")
+
+    if "focus-not-obscured" in enabled and suffix in {".css", ".scss", ".vue", ".svelte", ".astro"}:
+        # Flag position: sticky or fixed on header/nav/footer-like selectors when
+        # scroll-padding is absent. The scanner cannot see cascade; confirm in browser.
+        has_sticky = re.search(
+            r"(?:header|nav|footer|\.header|\.nav|\.navbar|\.topbar|#header)\s*\{[^}]*position\s*:\s*(sticky|fixed)",
+            source,
+            flags=re.I | re.S,
+        )
+        if has_sticky and not re.search(r"\bscroll-padding\b", source):
+            add(
+                findings,
+                enabled,
+                "focus-not-obscured",
+                display,
+                line_of(source, has_sticky.start()),
+                "Sticky or fixed header/footer with no scroll-padding; focused elements may be hidden under it.",
+            )
+
+    if "missing-button-type" in enabled:
+        for match in re.finditer(r"<button\b([^>]*)>", source, flags=re.I):
+            attrs = match.group(1)
+            if not re.search(r"\btype\s*=", attrs, re.I):
+                add(
+                    findings,
+                    enabled,
+                    "missing-button-type",
+                    display,
+                    line_of(source, match.start()),
+                    "<button> has no type attribute (default is submit, which submits the nearest form).",
+                )
+
+    if "aria-hidden-focusable" in enabled:
+        for match in re.finditer(
+            r"aria-hidden\s*=\s*(?:[\"']true[\"']|\{true\})",
+            source,
+            flags=re.I,
+        ):
+            # Only flag when a focusable element appears within 500 chars after the attribute.
+            # Suppress if the aria-hidden is on an svg element itself (decorative icon pattern).
+            after = source[match.start() : match.start() + 500]
+            if re.search(r"<(?:a|button|input|select|textarea)\b", after, flags=re.I):
+                before = source[max(0, match.start() - 60) : match.start()]
+                if re.search(r"<svg\b", before, flags=re.I):
+                    continue
+                add(
+                    findings,
+                    enabled,
+                    "aria-hidden-focusable",
+                    display,
+                    line_of(source, match.start()),
+                    "aria-hidden='true' is set near focusable children; keyboard users can reach hidden content.",
+                )
+
+
+    if "justified-text" in enabled:
+        for match in re.finditer(r"(?<![\w-])text-align\s*:\s*justify\b", source):
+            add(findings, enabled, "justified-text", display, line_of(source, match.start()), "text-align: justify creates uneven word rivers.")
+        for match in re.finditer(r'(?:^|[\s"\'`])(text-justify)(?:[\s"\'`]|$)', source):
+            add(findings, enabled, "justified-text", display, line_of(source, match.start(1)), "text-justify utility creates uneven word rivers.")
+
+    if "extreme-negative-tracking" in enabled:
+        for match in re.finditer(r"(?<![\w-])letter-spacing\s*:\s*-(?:0\.(?:0[5-9]|[1-9])|[1-9])(?:[0-9]*em|px)\b", source):
+            add(findings, enabled, "extreme-negative-tracking", display, line_of(source, match.start()), f"letter-spacing {match.group(0).strip()} is tighter than -0.04em floor.")
+        for match in re.finditer(r"(tracking-\[-0\.(?:0[5-9]|[1-9])[0-9]*em\])", source):
+            add(findings, enabled, "extreme-negative-tracking", display, line_of(source, match.start(1)), f"Tracking {match.group(1)} is tighter than -0.04em floor.")
 
     return findings
 

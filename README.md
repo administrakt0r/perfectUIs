@@ -68,7 +68,10 @@ scripts/perfectuis detect src/
 scripts/perfectuis detect --json src/components/
 scripts/perfectuis detect --scope color src/components/Button.tsx
 scripts/perfectuis detect --rules
+scripts/perfectuis update
 ```
+
+When installed via `git clone`, `scripts/perfectuis` automatically checks weekly in the background for new upstream releases on GitHub and reminds you if an update is available. Run `scripts/perfectuis update` to fast-forward pull the latest improvements.
 
 Exit 0 means no findings. Exit 1 means the JSON or text report contains candidates to confirm.
 
@@ -110,10 +113,10 @@ The assistant will scan your project, show you the top one or two issues it foun
 perfectUIs categorizes fixes into six distinct playbooks:
 
 - **layout**: Spacing on the product scale, grouping, container queries, and flex or grid overflow.
-- **typeset**: 45–75 character measure, `text-wrap: balance` on headings, `text-wrap: pretty` on body, and tabular numbers.
+- **typeset**: 45–75 character measure, left-aligned text (no `text-align: justify`), heading tracking floor (-0.04em), `text-wrap: balance` on headings, `text-wrap: pretty` on body, and tabular numbers.
 - **colorize**: WCAG AA contrast (4.5:1 body, 3:1 large text and controls), `oklch()` ramps, and tokens instead of raw hex.
-- **harden**: Labels, empty, loading, and error states, and long or translated strings.
-- **adapt**: Phone, tablet, and foldable structure, 24px minimum targets (44px for primary touch), and web shells such as Capacitor, Tauri, and Electron.
+- **harden**: Labels, explicit button types, `aria-hidden` on focusable children, empty, loading, and error states, and long or translated strings.
+- **adapt**: Phone, tablet, and foldable structure, 24px minimum targets (44px for primary touch), `scroll-padding` for sticky headers, and web shells such as Capacitor, Tauri, and Electron.
 - **polish**: Radii, `::selection`, `:focus-visible`, and motion that respects `prefers-reduced-motion`.
 
 ---
@@ -125,7 +128,7 @@ Every code edit must pass these baseline rules:
 - **Contrast**: Body and placeholder text at least 4.5:1. Large text, icons, and focus rings at least 3:1. Status is not color alone.
 - **Spacing**: Headings have more space above than below, on a consistent scale.
 - **Typography**: Prose stays within 45–75 characters. Headings use balanced wrapping; body copy uses `text-wrap: pretty`.
-- **Targets**: At least 24×24 CSS px, and 44×44 px for primary touch controls. Focus stays visible and is not covered by sticky bars.
+- **Targets**: At least 24×24 CSS px, and 44×44 px for primary touch controls. Focus stays visible and is not covered by sticky bars (`scroll-padding` on the scroll root).
 - **States**: Hover, focus-visible, active, disabled, loading, empty, and error, including recovery text.
 - **Browser surfaces**: Selection, scrollbars, and focus rings use the product palette.
 
